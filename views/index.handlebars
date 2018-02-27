@@ -1,0 +1,150 @@
+{{dataX.geo}}
+  <script src="/js/three.min.js"></script>
+    <script src="/js/OrbitControls.js"></script>
+    <script src="/js/stats.min.js"></script>
+     <script>
+        var GEO=[]
+        function GeoObj(n,x,y,z,l,w,h,coor){
+            this.N=n;
+            this.X=x;
+            this.Y=y;
+            this.Z=z;
+            this.L=l;
+            this.W=w;
+            this.H=h;
+            this.Coor=coor;        
+        }
+        var xcoor="";
+        {{#each geo}}
+            var geo2=new GeoObj("{{N}}",{{X}},{{Y}},{{Z}},{{L}},{{W}},{{H}});
+            geo2.Coor="{{Coor}}";
+            xcoor="{{Coor}}";
+            GEO.push(geo2);
+        {{/each}}
+        
+        var camera, controls, scene, renderer;
+        init();
+        render();
+        function init() {
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            var HEIGHT=window.innerHeight;
+            var WIDTH=window.innerWidth;
+            //var HEIGHT=1280;
+            //var WIDTH=1024;
+            renderer.setSize(WIDTH, HEIGHT);
+            document.body.appendChild(renderer.domElement);
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color( "rgb(255,255,255)" );
+            var center = new THREE.Vector3();
+            camera = new THREE.PerspectiveCamera(45, WIDTH/HEIGHT, 0.01, 30000);
+
+            camera.up = new THREE.Vector3(0, 0, 1);
+            camera.position.x = 300;
+            camera.position.y = -300;
+            camera.position.z = 200;
+            //camera.lookAt(center);
+            var color = new THREE.Color(0.2, 0.2, 0.2);
+            var ambient = new THREE.AmbientLight(color.getHex());
+            scene.add(ambient);
+
+            controls = new THREE.OrbitControls( camera, renderer.domElement );
+            controls.addEventListener( 'change', render );
+            controls.enableZoom = true;
+            
+            console.log(GEO);
+            var material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color('grey')
+            });
+            
+
+            var j=0;
+            for(var i=0; i<GEO.length ;i++){
+                var geometry = new THREE.BoxGeometry(GEO[i].L,GEO[i].W,GEO[i].H);
+                if(GEO[i].N==="residential_tower"){
+                    var material = new THREE.MeshPhongMaterial({
+                        color:  new THREE.Color( "rgb(255,0,0)" )
+                    });
+                    console.log('res found');
+                }else if(GEO[i].N==="Parking"){
+                    var material = new THREE.MeshPhongMaterial({
+                        color: new THREE.Color("rgb(255,255,0)")
+                    });
+                    console.log('parking found');
+                }else if(GEO[i].N==="low_rise"){
+                    var material = new THREE.MeshPhongMaterial({
+                        color: new THREE.Color("rgb(0,255,0)")
+                    });
+                    console.log('low_rise found');
+                }else{
+                     var material = new THREE.MeshPhongMaterial({
+                        color: new THREE.Color("rgb(0,0,255)")
+                    });
+                    console.log('townhouse');
+                }
+                var cube = new THREE.Mesh(geometry, material);
+                cube.position.x=GEO[i].X;   
+                cube.position.y=GEO[i].Y;   
+                cube.position.z=GEO[i].Z;   
+                scene.add(cube);
+                j+=(1.5);
+            }
+
+            var site =GEO[0].Coor;
+            var siteShape=new THREE.Shape();
+            var arr=site.split("o");
+            for(var i=0; i<arr.length; i++){
+                var x=parseFloat(arr[i].split(",")[0]);
+                var y=parseFloat(arr[i].split(",")[1]);
+                var z=0;
+                if(i==0){
+                    siteShape.moveTo(x,y,0);
+                }else{
+                    siteShape.lineTo(x,y,0);
+                }
+            }
+            var site_geometry=new THREE.ShapeGeometry(siteShape);
+            var site_material= new THREE.MeshPhongMaterial({
+                        color: new THREE.Color("rgb(155,155,155)")
+                    });
+            var site_mesh=new THREE.Mesh(site_geometry, site_material);
+            scene.add(site_mesh);
+
+            var pointLight = new THREE.PointLight(0xFFFFFF);
+            pointLight.position.x = 5;
+            pointLight.position.y = 5;
+            scene.add(pointLight);
+
+            // lights
+            var light = new THREE.DirectionalLight(0xffffff);
+            light.position.set(1, 1, 10);
+            scene.add(light);
+            var light = new THREE.DirectionalLight(0x002288);
+            light.position.set(-1, -1, 10);
+            scene.add(light);
+            var light = new THREE.AmbientLight(0x222222);
+            scene.add(light);
+
+            var axisHelper = new THREE.AxisHelper(5);
+            scene.add(axisHelper);
+
+            function render() {
+                renderer.render(scene, camera);
+            }
+            window.addEventListener( 'resize', onWindowResize, false );
+        }
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); // required if controls.enableDamping = true, or if controls.autoRotate = true
+            stats.update();
+            render();
+        }
+        function render() {
+            renderer.render(scene, camera);
+        }    
+    </script>

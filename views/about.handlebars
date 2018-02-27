@@ -1,0 +1,16 @@
+<script>
+  var GEO=[]
+  function Geo(x,y,z,l,w,h){
+    this.X=x;
+    this.Y=y;
+    this.Z=z;
+    this.L=l;
+    this.W=w;
+    this.H=h;
+  }
+  {{#each geo}}
+    var geo=new Geo({{X}},{{Y}},{{Z}},{{L}},{{W}},{{H}});
+    GEO.push(geo);
+  {{/each}}
+  console.log(GEO)
+</script>
